@@ -1,0 +1,72 @@
+# Node.js with Angular
+# Build a Node.js project that uses Angular.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+trigger:
+  branches:
+    include:
+      - refs/tags/release/*
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '10.x'
+  displayName: 'Install Node.js'
+
+- script: |
+    npm install -g @angular/cli
+    npm install
+  displayName: 'NPM Install'
+
+- task: GitVersion@5
+  inputs:
+    runtime: 'core'
+    configFilePath: 'GitVersion.yml'
+
+- task: Npm@1
+  displayName: 'Version Stamp'
+  inputs:
+    command: 'custom'
+    customCommand: 'run updateVersion $(Build.BuildNumber)'
+  
+- script: |
+    npm run build-prod
+  displayName: 'NPM Build'
+
+- script: |
+    npm run test-headless
+  displayName: 'Running Tests'
+
+- task: reportgenerator@4
+  displayName: 'Processing Coverage Reports'
+  inputs:
+    reports: 'coverage/**/cobertura-coverage.xml'
+    targetdir: 'coveragereport'
+
+- task: PublishTestResults@2
+  displayName: 'Publishing Tests'
+  inputs:
+    testResultsFormat: JUnit
+    testResultsFiles: '**/*-test-result.xml'
+    mergeTestResults: true
+    failTaskOnFailedTests: true
+    testRunTitle: Jasmine Tests
+ 
+- task: PublishCodeCoverageResults@1
+  displayName: 'Publishing Coverage'
+  inputs:
+    codeCoverageTool: 'Cobertura'
+    summaryFileLocation: 'coveragereport/Cobertura.xml'
+    reportDirectory: 'coveragereport'
+  
+- task: Npm@1
+  inputs:
+    command: 'publish'
+    workingDir: 'dist/vmts'
+    publishRegistry: 'useFeed'
+    publishFeed: 'b57fc2d9-25bc-483c-a2dd-73a5fd0e4ebb/11474883-4f69-4f21-91e1-57b2448d403b'
+    

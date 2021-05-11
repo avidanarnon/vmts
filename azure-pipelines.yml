@@ -1,0 +1,70 @@
+# Node.js with Angular
+# Build a Node.js project that uses Angular.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+trigger: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '10.x'
+  displayName: 'Install Node.js'
+
+- task: GitVersion@5
+  inputs:
+    runtime: 'core'
+    configFilePath: 'GitVersion.yml'
+    
+- task: RestoreAndSaveCache@1
+  displayName: 'Package Cache'
+  inputs:
+    keyfile: '**/package-lock.json, !**/node_modules/**/package-lock.json'
+    targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
+    vstsFeed: '634a7818-ef16-4dd6-a0f6-fce33c47dbeb'
+    platformIndependent: true
+
+- script: |
+    npm install -g @angular/cli
+    npm install
+  displayName: 'NPM Install'
+  condition: ne(variables['CacheRestored'], 'true')
+
+- task: Npm@1
+  displayName: 'Version Stamp'
+  inputs:
+    command: 'custom'
+    customCommand: 'run updateVersion $(Build.BuildNumber)'
+  
+- script: |
+    npm run build-prod
+  displayName: 'NPM Build'
+
+- script: |
+    npm run test-headless
+  displayName: 'Running Tests'
+
+- task: reportgenerator@4
+  displayName: 'Processing Coverage Reports'
+  inputs:
+    reports: 'coverage/**/cobertura-coverage.xml'
+    targetdir: 'coveragereport'
+
+- task: PublishTestResults@2
+  displayName: 'Publishing Tests'
+  inputs:
+    testResultsFormat: JUnit
+    testResultsFiles: '**/*-test-result.xml'
+    mergeTestResults: true
+    failTaskOnFailedTests: true
+    testRunTitle: Jasmine Tests
+
+- task: PublishCodeCoverageResults@1
+  displayName: 'Publishing Coverage'
+  inputs:
+    codeCoverageTool: 'Cobertura'
+    summaryFileLocation: 'coveragereport/Cobertura.xml'
+    reportDirectory: 'coveragereport'
