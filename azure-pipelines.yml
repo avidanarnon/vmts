@@ -33,7 +33,7 @@ steps:
     displayName: 'Version Stamp'
     inputs:
       command: 'custom'
-      customCommand: 'run updateVersion $(Build.BuildNumber)'
+      customCommand: 'run version-stamp $(Build.BuildNumber)'
 
   - script: |
       npm run build
