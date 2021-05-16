@@ -1,3 +1,4 @@
+import * as ko from 'knockout';
 import { Observable, Subject } from 'rxjs';
 
 import {

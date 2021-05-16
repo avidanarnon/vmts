@@ -115,22 +115,22 @@ export abstract class NamedPropertyModel
   }
 
   status(): ModelStatus {
-    let selfstatus = this.selfStatus();
+    let selfStatus = this.selfStatus();
     for (const child of Array.from(this._properties.values())) {
       if (child as Model<any>) {
-        selfstatus |= (child as Model<any>).status();
+        selfStatus |= (child as Model<any>).status();
       }
     }
 
     if (
-      !!(selfstatus & ModelStatus.New) ||
-      !!(selfstatus & ModelStatus.Deleted)
+      !!(selfStatus & ModelStatus.New) ||
+      !!(selfStatus & ModelStatus.Deleted)
     ) {
       // New and Deleted takes precedent over changed
-      selfstatus &= 0b1110;
+      selfStatus &= 0b1110;
     }
 
-    return selfstatus;
+    return selfStatus;
   }
 
   commit(): boolean {

@@ -1,20 +1,22 @@
-import test from 'ava';
-
 import {
   Model,
   ModelStatus,
   ModelVisitor,
-  VisitResult,
   Traversable,
-} from './api';
-import { ModelProperty } from './model-property';
-import { NamedPropertyModel } from './named-property-model';
+  VisitResult,
+} from '../lib/api';
+import { ModelProperty } from '../lib/model-property';
+import { NamedPropertyModel } from '../lib/named-property-model';
 
 class TestableVisitor implements ModelVisitor<Model<any> & Traversable> {
   modelsVisited = new Array<Model<any>>();
 
-  up(): void {}
-  down(): void {}
+  up(): void {
+    return;
+  }
+  down(): void {
+    return;
+  }
   depth(): number {
     return 0;
   }
@@ -104,46 +106,46 @@ class NestedModel extends NamedPropertyModel {
   }
 }
 
-test('work as expected with boolean property', (t) => {
+test('work as expected with boolean property', () => {
   const model = new TestModel();
   model.prop1 = true;
-  t.true(model.prop1);
+  expect(model.prop1).toBeTruthy();
 });
 
-test('work as expected with numeric property', (t) => {
+test('work as expected with numeric property', () => {
   const model = new TestModel();
   model.prop2 = 9;
-  t.is(model.prop2, 9);
+  expect(model.prop2).toBe(9);
 });
 
-test('work as expected with string property', (t) => {
+test('work as expected with string property', () => {
   const model = new TestModel();
   model.prop3 = '9';
-  t.is(model.prop3, '9');
+  expect(model.prop3).toBe('9');
 });
 
-test('with new model marks it as none status', (t) => {
+test('with new model marks it as none status', () => {
   const model = new TestModel();
   model.commit();
-  t.is(model.status(), ModelStatus.None);
+  expect(model.status()).toBe(ModelStatus.None);
 });
 
-test('twice with new model marks it as none status', (t) => {
+test('twice with new model marks it as none status', () => {
   const model = new TestModel();
   model.commit();
   model.commit();
-  t.is(model.status(), ModelStatus.None);
+  expect(model.status()).toBe(ModelStatus.None);
 });
 
-test('model with property changes marks it as none and all children are also commited', (t) => {
+test('model with property changes marks it as none and all children are also committed', () => {
   const model = new TestModel();
   model.prop1 = true;
   model.commit();
-  t.is(model.status(), ModelStatus.None);
-  t.is(model.getProperty1().status(), ModelStatus.None);
+  expect(model.status()).toBe(ModelStatus.None);
+  expect(model.getProperty1().status()).toBe(ModelStatus.None);
 });
 
-test('model with multiple property changes marks it as none and all children are also commited', (t) => {
+test('model with multiple property changes marks it as none and all children are also committed', () => {
   const model = new TestModel();
   model.prop1 = true;
   model.prop2 = 9;
@@ -151,50 +153,50 @@ test('model with multiple property changes marks it as none and all children are
 
   model.commit();
 
-  t.is(model.status(), ModelStatus.None);
-  t.is(model.getProperty1().status(), ModelStatus.None);
-  t.is(model.getProperty2().status(), ModelStatus.None);
-  t.is(model.getProperty3().status(), ModelStatus.None);
+  expect(model.status()).toBe(ModelStatus.None);
+  expect(model.getProperty1().status()).toBe(ModelStatus.None);
+  expect(model.getProperty2().status()).toBe(ModelStatus.None);
+  expect(model.getProperty3().status()).toBe(ModelStatus.None);
 });
 
-test('new object as new', (t) => {
+test('new object as new', () => {
   const model = new TestModel();
-  t.is(model.status(), ModelStatus.New);
+  expect(model.status()).toBe(ModelStatus.New);
 });
 
-test('new object initializes its own change observer', (t) => {
+test('new object initializes its own change observer', () => {
   const model = new TestModel();
-  t.true(model.changed);
+  expect(model.changed).toBeTruthy();
 });
 
-test('new object initializes all properties as undefined', (t) => {
+test('new object initializes all properties as undefined', () => {
   const model = new TestModel();
-  t.false(model.prop1);
-  t.false(model.prop2);
-  t.false(model.prop3);
+  expect(model.prop1).toBeFalsy();
+  expect(model.prop2).toBeFalsy();
+  expect(model.prop3).toBeFalsy();
 });
 
-test('marking the model as deleted changes the status to deleted', (t) => {
+test('marking the model as deleted changes the status to deleted', () => {
   const model = new TestModel();
   model.deleted = true;
-  t.true(!!(model.status() & ModelStatus.Deleted));
+  expect(!!(model.status() & ModelStatus.Deleted)).toBeTruthy();
 });
 
-test('making a new property marks its status as new', (t) => {
+test('making a new property marks its status as new', () => {
   const model = new TestModel();
-  t.true(!!(model.status() & ModelStatus.New));
+  expect(!!(model.status() & ModelStatus.New)).toBeTruthy();
 });
 
-test('the subject is propagated to the child properties', (t) => {
+test('the subject is propagated to the child properties', () => {
   let updateNumber = 0;
   const model = new TestModel();
   model.changed.subscribe((changedModel) => {
     if (updateNumber === 0) {
-      t.is((changedModel as TestModel).prop1, true);
+      expect((changedModel as TestModel).prop1).toBe(true);
     } else if (updateNumber === 1) {
-      t.is((changedModel as TestModel).prop2, 0);
+      expect((changedModel as TestModel).prop2).toBe(0);
     } else if (updateNumber === 2) {
-      t.is((changedModel as TestModel).prop3, '');
+      expect((changedModel as TestModel).prop3).toBe('');
     }
 
     updateNumber++;
@@ -205,29 +207,35 @@ test('the subject is propagated to the child properties', (t) => {
   model.prop3 = '';
 });
 
-test('visits all children', (t) => {
+test('visits all children', () => {
   const model = new TestModel();
   const visitor = new TestableVisitor();
 
   model.traverse(visitor);
 
-  t.true(visitor.modelsVisited.indexOf(model) >= 0);
-  t.true(visitor.modelsVisited.indexOf(model.getProperty1()) >= 0);
-  t.true(visitor.modelsVisited.indexOf(model.getProperty2()) >= 0);
-  t.true(visitor.modelsVisited.indexOf(model.getProperty3()) >= 0);
+  expect(visitor.modelsVisited.indexOf(model) >= 0).toBeTruthy();
+  expect(visitor.modelsVisited.indexOf(model.getProperty1()) >= 0).toBeTruthy();
+  expect(visitor.modelsVisited.indexOf(model.getProperty2()) >= 0).toBeTruthy();
+  expect(visitor.modelsVisited.indexOf(model.getProperty3()) >= 0).toBeTruthy();
 });
 
-test('visits all nested children', (t) => {
+test('visits all nested children', () => {
   const model = new NestedModel();
   const visitor = new TestableVisitor();
 
   model.traverse(visitor);
 
-  t.is(visitor.modelsVisited.length, 8);
-  t.true(visitor.modelsVisited.indexOf(model) >= 0);
-  t.true(visitor.modelsVisited.indexOf(model.getProperty()) >= 0);
-  t.true(visitor.modelsVisited.indexOf(model.getModel()) >= 0);
-  t.true(visitor.modelsVisited.indexOf(model.getModel().getProperty1()) >= 0);
-  t.true(visitor.modelsVisited.indexOf(model.getModel().getProperty2()) >= 0);
-  t.true(visitor.modelsVisited.indexOf(model.getModel().getProperty3()) >= 0);
+  expect(visitor.modelsVisited.length).toBe(8);
+  expect(visitor.modelsVisited.indexOf(model) >= 0).toBeTruthy();
+  expect(visitor.modelsVisited.indexOf(model.getProperty()) >= 0).toBeTruthy();
+  expect(visitor.modelsVisited.indexOf(model.getModel()) >= 0).toBeTruthy();
+  expect(
+    visitor.modelsVisited.indexOf(model.getModel().getProperty1()) >= 0
+  ).toBeTruthy();
+  expect(
+    visitor.modelsVisited.indexOf(model.getModel().getProperty2()) >= 0
+  ).toBeTruthy();
+  expect(
+    visitor.modelsVisited.indexOf(model.getModel().getProperty3()) >= 0
+  ).toBeTruthy();
 });

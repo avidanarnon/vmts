@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "target": "esnext",
+    "outDir": "build/tests",
+    "module": "ES2020",
+    "moduleResolution": "node",
+    "include": ["src/tests/*.ts"],
+  },
+}

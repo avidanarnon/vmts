@@ -5,7 +5,7 @@ import { Model, ModelStatus, ModelVisitor, Traversable } from './api';
 export class ModelProperty<T> implements Model<T>, Traversable {
   protected _isNew: boolean;
   private _currentValue: any;
-  private _commitedValue: any;
+  private _committedValue: any;
 
   protected _changedSubject: Subject<Model<any>>;
   private _modelChanged: Observable<Model<any>>;
@@ -17,7 +17,7 @@ export class ModelProperty<T> implements Model<T>, Traversable {
   get value(): T {
     return this._currentValue !== undefined
       ? this._currentValue
-      : this._commitedValue;
+      : this._committedValue;
   }
 
   set value(v: T) {
@@ -35,7 +35,7 @@ export class ModelProperty<T> implements Model<T>, Traversable {
 
   load(value: T) {
     this._isNew = false;
-    this._commitedValue = value;
+    this._committedValue = value;
   }
 
   traverse(visitor: ModelVisitor<ModelProperty<T>>): void {
@@ -48,7 +48,7 @@ export class ModelProperty<T> implements Model<T>, Traversable {
     let status = ModelStatus.None;
     if (
       this._currentValue !== undefined &&
-      this._currentValue !== this._commitedValue
+      this._currentValue !== this._committedValue
     ) {
       status |= ModelStatus.Changed;
     }
@@ -61,7 +61,7 @@ export class ModelProperty<T> implements Model<T>, Traversable {
   commit(): boolean {
     this._isNew = false;
     if (this._currentValue !== undefined) {
-      this._commitedValue = this._currentValue;
+      this._committedValue = this._currentValue;
       this._currentValue = undefined;
     }
     return true;

@@ -32,8 +32,8 @@ export class DepthLimiter implements VisitorLimiter {
 }
 
 export class TypeLimiter implements VisitorLimiter {
-  private type: Function;
-  constructor(type: Function) {
+  private type: any;
+  constructor(type: any) {
     this.type = type;
   }
 
