@@ -18,20 +18,6 @@ steps:
   inputs:
     runtime: 'core'
     configFilePath: 'GitVersion.yml'
-    
-- task: RestoreAndSaveCache@1
-  displayName: 'Package Cache'
-  inputs:
-    keyfile: '**/package-lock.json, !**/node_modules/**/package-lock.json'
-    targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-    vstsFeed: '634a7818-ef16-4dd6-a0f6-fce33c47dbeb'
-    platformIndependent: true
-
-- script: |
-    npm install -g @angular/cli
-    npm install
-  displayName: 'NPM Install'
-  condition: ne(variables['CacheRestored'], 'true')
 
 - task: Npm@1
   displayName: 'Version Stamp'
@@ -40,18 +26,12 @@ steps:
     customCommand: 'run updateVersion $(Build.BuildNumber)'
   
 - script: |
-    npm run build-prod
+    npm run build
   displayName: 'NPM Build'
 
 - script: |
-    npm run test-headless
+    npm run test
   displayName: 'Running Tests'
-
-- task: reportgenerator@4
-  displayName: 'Processing Coverage Reports'
-  inputs:
-    reports: 'coverage/**/cobertura-coverage.xml'
-    targetdir: 'coveragereport'
 
 - task: PublishTestResults@2
   displayName: 'Publishing Tests'
@@ -61,10 +41,3 @@ steps:
     mergeTestResults: true
     failTaskOnFailedTests: true
     testRunTitle: Jasmine Tests
-
-- task: PublishCodeCoverageResults@1
-  displayName: 'Publishing Coverage'
-  inputs:
-    codeCoverageTool: 'Cobertura'
-    summaryFileLocation: 'coveragereport/Cobertura.xml'
-    reportDirectory: 'coveragereport'
