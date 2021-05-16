@@ -9,18 +9,12 @@ const packageJsonOptions = {
 };
 
 const configurePublicApiVersion = {
-  files: 'projects/**/public-api.ts',
+  files: 'src/**/index.ts',
   from: [
-    /.*(LIBRARY_VERSION).*/g,
-    /.*(EOBAR_WEBAPI_LIB_VERSION).*/g,
-    /.*(EOBAR_FOUNDATION_LIB_VERSION).*/g,
-    /.*(EOBAR_ION_ALPHA_SCROLL_LIB_VERSION).*/g
+    /.*(LIBRARY_VERSION).*/g
   ],
   to: [
     'export const LIBRARY_VERSION = \'' + buildVersion + '\';',
-    'export const EOBAR_WEBAPI_LIB_VERSION = \'' + buildVersion + '\';',
-    'export const EOBAR_FOUNDATION_LIB_VERSION = \'' + buildVersion + '\';',
-    'export const EOBAR_ION_ALPHA_SCROLL_LIB_VERSION = \'' + buildVersion + '\';'
   ],
   allowEmptyPaths: false
 };

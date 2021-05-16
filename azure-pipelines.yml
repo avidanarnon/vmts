@@ -9,35 +9,45 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '10.x'
-  displayName: 'Install Node.js'
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '10.x'
+    displayName: 'Install Node.js'
 
-- task: GitVersion@5
-  inputs:
-    runtime: 'core'
-    configFilePath: 'GitVersion.yml'
+  - task: UseDotNet@2
+    displayName: 'Use .NET Core sdk (for GitVersion)'
+    inputs:
+      packageType: sdk
+      version: 5.x
 
-- task: Npm@1
-  displayName: 'Version Stamp'
-  inputs:
-    command: 'custom'
-    customCommand: 'run updateVersion $(Build.BuildNumber)'
-  
-- script: |
-    npm run build
-  displayName: 'NPM Build'
+  - task: gitversion/setup@0
+    inputs:
+      versionSpec: '5.6.0'
 
-- script: |
-    npm run test
-  displayName: 'Running Tests'
+  - task: gitversion/execute@0
+    inputs:
+      useConfigFile: true
+      configFilePath: '$(Build.SourcesDirectory)/GitVersion.yml'
 
-- task: PublishTestResults@2
-  displayName: 'Publishing Tests'
-  inputs:
-    testResultsFormat: JUnit
-    testResultsFiles: '**/*-test-result.xml'
-    mergeTestResults: true
-    failTaskOnFailedTests: true
-    testRunTitle: Jasmine Tests
+  - task: Npm@1
+    displayName: 'Version Stamp'
+    inputs:
+      command: 'custom'
+      customCommand: 'run updateVersion $(Build.BuildNumber)'
+
+  - script: |
+      npm run build
+    displayName: 'NPM Build'
+
+  - script: |
+      npm run test
+    displayName: 'Running Tests'
+
+  - task: PublishTestResults@2
+    displayName: 'Publishing Tests'
+    inputs:
+      testResultsFormat: JUnit
+      testResultsFiles: '**/*-test-result.xml'
+      mergeTestResults: true
+      failTaskOnFailedTests: true
+      testRunTitle: Jasmine Tests
