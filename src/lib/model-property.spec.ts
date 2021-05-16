@@ -1,21 +1,19 @@
-import test from 'ava';
+import { Model, ModelStatus } from '../lib/api';
+import { ModelProperty } from '../lib/model-property';
 
-import { Model, ModelStatus } from './api';
-import { ModelProperty } from './model-property';
-
-test('Uninitialized property is new', (t) => {
+test('Uninitialized property is new', () => {
   const prop = new ModelProperty();
-  t.is(prop.status(), ModelStatus.New);
+  expect(prop.status()).toBe(ModelStatus.New);
 });
 
-test('Changing the value on a new property without commiting does not mark the property as changed', (t) => {
+test('Changing the value on a new property without committing does not mark the property as changed', () => {
   const prop = new ModelProperty();
   prop.value = 0;
-  t.true(!!(prop.status() & ModelStatus.New));
-  t.true(!!(prop.status() & ModelStatus.Changed));
+  expect(!!(prop.status() & ModelStatus.New)).toBeTruthy();
+  expect(!!(prop.status() & ModelStatus.Changed)).toBeTruthy();
 });
 
-test('Initializing model property change subject initializes but does not change the subject if no value is changed', (t) => {
+test('Initializing model property change subject initializes but does not change the subject if no value is changed', () => {
   let modelPropertyChanged = false;
   const prop = new ModelProperty<string>();
   prop.changed.subscribe((model) => {
@@ -24,11 +22,11 @@ test('Initializing model property change subject initializes but does not change
     }
   });
 
-  t.false(modelPropertyChanged);
+  expect(modelPropertyChanged).toBeFalsy();
 });
 
-test('Initializing model property change subject initializes and calls the subject when the value changes', (t) => {
-  let changedModel: Model<number>;
+test('Initializing model property change subject initializes and calls the subject when the value changes', () => {
+  let changedModel: Model<number> | undefined;
   let modelPropertyChanged = false;
   const prop = new ModelProperty<number>();
   prop.changed.subscribe((model) => {
@@ -40,73 +38,73 @@ test('Initializing model property change subject initializes and calls the subje
 
   prop.value = 0;
 
-  t.true(modelPropertyChanged);
-  t.is(prop.value, changedModel.value);
+  expect(modelPropertyChanged);
+  expect(prop.value).toBe(changedModel?.value);
 });
 
-test('Set value on multiple types of model property objects work the same between each', (t) => {
+test('Set value on multiple types of model property objects work the same between each', () => {
   const numberProp = new ModelProperty<number>();
   numberProp.value = 0;
-  t.true(!!(numberProp.status() & ModelStatus.New));
-  t.true(!!(numberProp.status() & ModelStatus.Changed));
+  expect(!!(numberProp.status() & ModelStatus.New)).toBeTruthy();
+  expect(!!(numberProp.status() & ModelStatus.Changed)).toBeTruthy();
 
   const stringProp = new ModelProperty<string>();
   stringProp.value = 'test';
-  t.true(!!(stringProp.status() & ModelStatus.New));
-  t.true(!!(stringProp.status() & ModelStatus.Changed));
+  expect(!!(stringProp.status() & ModelStatus.New)).toBeTruthy();
+  expect(!!(stringProp.status() & ModelStatus.Changed)).toBeTruthy();
 
   const booleanProp = new ModelProperty<boolean>();
   booleanProp.value = false;
-  t.true(!!(booleanProp.status() & ModelStatus.New));
-  t.true(!!(booleanProp.status() & ModelStatus.Changed));
+  expect(!!(booleanProp.status() & ModelStatus.New)).toBeTruthy();
+  expect(!!(booleanProp.status() & ModelStatus.Changed)).toBeTruthy();
 });
 
-test('Commits through set workflow changes the status as expected', (t) => {
+test('Commits through set workflow changes the status as expected', () => {
   const prop = new ModelProperty();
-  t.is(prop.status(), ModelStatus.New);
+  expect(prop.status()).toBe(ModelStatus.New);
 
   prop.commit();
-  t.is(prop.status(), ModelStatus.None);
+  expect(prop.status()).toBe(ModelStatus.None);
 
   prop.value = 1;
-  t.is(prop.status(), ModelStatus.Changed);
+  expect(prop.status()).toBe(ModelStatus.Changed);
 
   prop.commit();
-  t.is(prop.status(), ModelStatus.None);
+  expect(prop.status()).toBe(ModelStatus.None);
 });
 
-test('Setting the value of a commited and unchanged property has no effect', (t) => {
+test('Setting the value of a committed and unchanged property has no effect', () => {
   const prop = new ModelProperty();
   prop.commit();
-  t.is(prop.status(), ModelStatus.None);
+  expect(prop.status()).toBe(ModelStatus.None);
 
   prop.value = undefined;
-  t.is(prop.status(), ModelStatus.None);
+  expect(prop.status()).toBe(ModelStatus.None);
 });
 
-test('Setting the value to a different than internal value on a commited property makes the property changed', (t) => {
+test('Setting the value to a different than internal value on a committed property makes the property changed', () => {
   const prop = new ModelProperty();
   prop.commit();
   prop.value = 1;
-  t.is(prop.status(), ModelStatus.Changed);
+  expect(prop.status()).toBe(ModelStatus.Changed);
   prop.commit();
-  t.is(prop.status(), ModelStatus.None);
+  expect(prop.status()).toBe(ModelStatus.None);
   prop.value = 2;
-  t.is(prop.status(), ModelStatus.Changed);
+  expect(prop.status()).toBe(ModelStatus.Changed);
 });
 
-test('Setting the value to the same internal value has no effect', (t) => {
+test('Setting the value to the same internal value has no effect', () => {
   const prop = new ModelProperty();
   prop.commit();
   prop.value = 1;
-  t.is(prop.status(), ModelStatus.Changed);
+  expect(prop.status()).toBe(ModelStatus.Changed);
   prop.commit();
-  t.is(prop.status(), ModelStatus.None);
+  expect(prop.status()).toBe(ModelStatus.None);
   prop.value = 1;
-  t.is(prop.status(), ModelStatus.None);
+  expect(prop.status()).toBe(ModelStatus.None);
 });
 
-test('is not trigger by constructor', (t) => {
+test('is not trigger by constructor', () => {
   let changedModel: any;
   const prop = new ModelProperty<any>();
   prop.changed.subscribe((model) => {
@@ -114,10 +112,10 @@ test('is not trigger by constructor', (t) => {
       changedModel = model;
     }
   });
-  t.is(changedModel, undefined);
+  expect(changedModel).toBe(undefined);
 });
 
-test('is trigger by value setter', (t) => {
+test('is trigger by value setter', () => {
   let changedModel: any;
   const prop = new ModelProperty<any>();
   prop.changed.subscribe((model) => {
@@ -126,11 +124,11 @@ test('is trigger by value setter', (t) => {
     }
   });
   prop.value = 0;
-  t.is(changedModel, prop);
+  expect(changedModel).toBe(prop);
 });
 
-test('is trigger by rollback', (t) => {
-  let changedModel: Model<any>;
+test('is trigger by rollback', () => {
+  let changedModel: Model<any> | undefined;
   const prop = new ModelProperty();
   prop.changed.subscribe((model) => {
     if (model) {
@@ -139,5 +137,6 @@ test('is trigger by rollback', (t) => {
   });
   prop.value = 0;
   prop.rollback();
-  t.is(changedModel.value, undefined);
+
+  expect(changedModel?.value).toBe(undefined);
 });

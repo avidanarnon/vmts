@@ -13,7 +13,7 @@ export function findChildrenWithStatus<T extends Model<any> & Traversable>(
   start?: number,
   end?: number
 ): Array<T> {
-  let limiter = null;
+  let limiter: DepthLimiter | undefined;
   if (start && end) {
     limiter = new DepthLimiter(start, end);
   }
@@ -25,7 +25,7 @@ export function findChildrenWithStatus<T extends Model<any> & Traversable>(
 export function findChildrenByTypeWithStatus(
   status: ModelStatus,
   model: Traversable,
-  type: Function
+  type: any
 ): Array<Model<any>> {
   const limiter = new TypeLimiter(type);
   const visitor = new GetChildrenWithStatusVisitor(status, limiter);
@@ -38,7 +38,7 @@ export function getModelStatusRecursive(
   start?: number,
   end?: number
 ): number {
-  let limiter = null;
+  let limiter: DepthLimiter | undefined;
   if (start && end) {
     limiter = new DepthLimiter(start, end);
   }
@@ -52,7 +52,7 @@ export function modelIsDirty<T extends Model<any> & Traversable>(
   start?: number,
   end?: number
 ): boolean {
-  let limiter = null;
+  let limiter: DepthLimiter | undefined;
   if (start && end) {
     limiter = new DepthLimiter(start, end);
   }
@@ -67,7 +67,7 @@ export function modelHasStatus<T extends Model<any> & Traversable>(
   start?: number,
   end?: number
 ): boolean {
-  let limiter = null;
+  let limiter: DepthLimiter | undefined;
   if (start && end) {
     limiter = new DepthLimiter(start, end);
   }
@@ -76,7 +76,7 @@ export function modelHasStatus<T extends Model<any> & Traversable>(
   return visitor.modelHasStatus;
 }
 
-export function findStatusOfChildrenOfType(model: Traversable, type: Function) {
+export function findStatusOfChildrenOfType(model: Traversable, type: any) {
   const limiter = new TypeLimiter(type);
   const visitor = new ModelAcquireStatusVisitor(limiter);
   model.traverse(visitor);

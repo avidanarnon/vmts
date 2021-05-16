@@ -1,39 +1,15 @@
-import test from 'ava';
-
-import {
-  Model,
-  ModelStatus,
-  ModelVisitor,
-  Traversable,
-  VisitResult,
-} from './api';
-import { ModelCollectionProperty } from './model-collection';
-import { ModelProperty } from './model-property';
-import { NamedPropertyModel } from './named-property-model';
-import { DepthLimiter, TypeLimiter } from './visitor-limiters';
+import { ObservableArray } from 'knockout';
+import { ModelStatus } from '../lib/api';
+import { ModelCollectionProperty } from '../lib/model-collection';
+import { ModelProperty } from '../lib/model-property';
+import { NamedPropertyModel } from '../lib/named-property-model';
+import { DepthLimiter, TypeLimiter } from '../lib/visitor-limiters';
 import {
   GetChildrenWithStatusVisitor,
   ModelAcquireStatusVisitor,
   ModelHasStatusVisitor,
   ModelIsDirtyVisitor,
-} from './visitors';
-
-class TestingVisitor implements ModelVisitor<Model<any> & Traversable> {
-  modelsVisited = new Array<Model<any>>();
-
-  up(): void {}
-  down(): void {}
-  depth(): number {
-    return 0;
-  }
-
-  visit(model: Model<any> & Traversable): VisitResult {
-    if (model) {
-      this.modelsVisited.push(model);
-    }
-    return VisitResult.Continue;
-  }
-}
+} from '../lib/visitors';
 
 class TestableModel2 extends NamedPropertyModel {
   get string(): string {
@@ -68,7 +44,7 @@ class TestableModel extends NamedPropertyModel {
     this.getChild<ModelProperty<number>>('number').value = v;
   }
 
-  get collection(): KnockoutObservableArray<TestableModel2> {
+  get collection(): ObservableArray<TestableModel2> {
     return this.getChild<ModelCollectionProperty<TestableModel2>>('collection')
       .value;
   }
@@ -94,7 +70,7 @@ class TestableModel extends NamedPropertyModel {
   }
 }
 
-test('with commited model gives clean status', (t) => {
+test('with committed model gives clean status', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();
@@ -107,11 +83,11 @@ test('with commited model gives clean status', (t) => {
   const visitor = new ModelAcquireStatusVisitor();
   model.traverse(visitor);
 
-  t.true(visitor.isClean);
-  t.false(visitor.isDirty);
+  expect(visitor.isClean).toBeTruthy();
+  expect(visitor.isDirty).toBeFalsy();
 });
 
-test('with model with collection that has pending addition gives add status', (t) => {
+test('with model with collection that has pending addition gives add status', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();
@@ -122,12 +98,12 @@ test('with model with collection that has pending addition gives add status', (t
   const visitor = new ModelAcquireStatusVisitor();
   model.traverse(visitor);
 
-  t.false(visitor.isClean);
-  t.true(visitor.isDirty);
-  t.true(visitor.hasAdditions);
+  expect(visitor.isClean).toBeFalsy();
+  expect(visitor.isDirty).toBeTruthy();
+  expect(visitor.hasAdditions).toBeTruthy();
 });
 
-test('with collection model that is commited but children that are changed gives change status', (t) => {
+test('with collection model that is committed but children that are changed gives change status', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();
@@ -147,13 +123,13 @@ test('with collection model that is commited but children that are changed gives
   const visitor = new ModelAcquireStatusVisitor();
   model.traverse(visitor);
 
-  t.false(visitor.isClean);
-  t.false(visitor.hasAdditions);
-  t.true(visitor.isChanged);
-  t.true(visitor.isDirty);
+  expect(visitor.isClean).toBeFalsy();
+  expect(visitor.hasAdditions).toBeFalsy();
+  expect(visitor.isChanged).toBeTruthy();
+  expect(visitor.isDirty).toBeTruthy();
 });
 
-test('with collection model that is commited but mixed children changed gives change status', (t) => {
+test('with collection model that is committed but mixed children changed gives change status', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();
@@ -172,13 +148,13 @@ test('with collection model that is commited but mixed children changed gives ch
   const visitor = new ModelAcquireStatusVisitor();
   model.traverse(visitor);
 
-  t.false(visitor.isClean);
-  t.false(visitor.hasAdditions);
-  t.true(visitor.isChanged);
-  t.true(visitor.isDirty);
+  expect(visitor.isClean).toBeFalsy();
+  expect(visitor.hasAdditions).toBeFalsy();
+  expect(visitor.isChanged).toBeTruthy();
+  expect(visitor.isDirty).toBeTruthy();
 });
 
-test('with collection model that has pending deletes gives delete status', (t) => {
+test('with collection model that has pending deletes gives delete status', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();
@@ -198,14 +174,14 @@ test('with collection model that has pending deletes gives delete status', (t) =
   const visitor = new ModelAcquireStatusVisitor();
   model.traverse(visitor);
 
-  t.false(visitor.isClean);
-  t.false(visitor.hasAdditions);
-  t.true(visitor.isChanged);
-  t.true(visitor.hasDeletions);
-  t.true(visitor.isDirty);
+  expect(visitor.isClean).toBeFalsy();
+  expect(visitor.hasAdditions).toBeFalsy();
+  expect(visitor.isChanged).toBeTruthy();
+  expect(visitor.hasDeletions).toBeTruthy();
+  expect(visitor.isDirty).toBeTruthy();
 });
 
-test('with collection model with additions but range limited to change child models gives only change status', (t) => {
+test('with collection model with additions but range limited to change child models gives only change status', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();
@@ -219,15 +195,15 @@ test('with collection model with additions but range limited to change child mod
   const visitor = new ModelAcquireStatusVisitor(limiter);
   model.traverse(visitor);
 
-  t.false(visitor.isClean);
-  t.false(visitor.hasDeletions);
+  expect(visitor.isClean).toBeFalsy();
+  expect(visitor.hasDeletions).toBeFalsy();
 
-  t.false(visitor.hasAdditions);
-  t.true(visitor.isChanged);
-  t.true(visitor.isDirty);
+  expect(visitor.hasAdditions).toBeFalsy();
+  expect(visitor.isChanged).toBeTruthy();
+  expect(visitor.isDirty).toBeTruthy();
 });
 
-test('with collection model with additions but limited to ModelProperty types gives only changed state', (t) => {
+test('with collection model with additions but limited to ModelProperty types gives only changed state', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();
@@ -241,15 +217,15 @@ test('with collection model with additions but limited to ModelProperty types gi
   const visitor = new ModelAcquireStatusVisitor(limiter);
   model.traverse(visitor);
 
-  t.false(visitor.isClean);
-  t.false(visitor.hasDeletions);
+  expect(visitor.isClean).toBeFalsy();
+  expect(visitor.hasDeletions).toBeFalsy();
 
-  t.false(visitor.hasAdditions);
-  t.true(visitor.isChanged);
-  t.true(visitor.isDirty);
+  expect(visitor.hasAdditions).toBeFalsy();
+  expect(visitor.isChanged).toBeTruthy();
+  expect(visitor.isDirty).toBeTruthy();
 });
 
-test('with collection model with additions but limited to ModelCollectionProperty types gives only added state', (t) => {
+test('with collection model with additions but limited to ModelCollectionProperty types gives only added state', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();
@@ -263,15 +239,15 @@ test('with collection model with additions but limited to ModelCollectionPropert
   const visitor = new ModelAcquireStatusVisitor(limiter);
   model.traverse(visitor);
 
-  t.false(visitor.isClean);
-  t.false(visitor.hasDeletions);
+  expect(visitor.isClean).toBeFalsy();
+  expect(visitor.hasDeletions).toBeFalsy();
 
-  t.true(visitor.isChanged);
-  t.true(visitor.hasAdditions);
-  t.true(visitor.isDirty);
+  expect(visitor.isChanged).toBeTruthy();
+  expect(visitor.hasAdditions).toBeTruthy();
+  expect(visitor.isDirty).toBeTruthy();
 });
 
-test('with clean model gives no match', (t) => {
+test('with clean model gives no match', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();
@@ -287,7 +263,7 @@ test('with clean model gives no match', (t) => {
   expect(visitor.modelHasStatus).toBeFalsy();
 });
 
-test('with changed model gives match', (t) => {
+test('with changed model gives match', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();
@@ -301,10 +277,10 @@ test('with changed model gives match', (t) => {
   const visitor = new ModelHasStatusVisitor(ModelStatus.Changed);
   model.traverse(visitor);
 
-  t.true(visitor.modelHasStatus).toBeTruthy();
+  expect(visitor.modelHasStatus).toBeTruthy();
 });
 
-test('with clean model gives no children', (t) => {
+test('with clean model gives no children', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();
@@ -317,10 +293,10 @@ test('with clean model gives no children', (t) => {
   const visitor = new GetChildrenWithStatusVisitor(ModelStatus.Changed);
   model.traverse(visitor);
 
-  expect(visitor.children.length).toEqual(0);
+  expect(visitor.children.length).toBe(0);
 });
 
-test('with changed model gives match', (t) => {
+test('with changed model gives match', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();
@@ -334,12 +310,12 @@ test('with changed model gives match', (t) => {
   const visitor = new GetChildrenWithStatusVisitor(ModelStatus.Changed);
   model.traverse(visitor);
 
-  t.is(visitor.children.length, 2);
-  t.is(visitor.children[0], model);
-  t.is(visitor.children[1], model.getBooleanProperty());
+  expect(visitor.children.length).toBe(2);
+  expect(visitor.children[0]).toBe(model);
+  expect(visitor.children[1]).toBe(model.getBooleanProperty());
 });
 
-test('with multiple layers of children with change status gives match', (t) => {
+test('with multiple layers of children with change status gives match', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();
@@ -359,27 +335,37 @@ test('with multiple layers of children with change status gives match', (t) => {
   const visitor = new GetChildrenWithStatusVisitor(ModelStatus.Changed);
   model.traverse(visitor);
 
-  t.is(visitor.children.length, 4);
-  t.true(visitor.children.indexOf(subModel1) >= 0);
-  t.true(visitor.children.indexOf(subModel1.getStringProperty()) >= 0);
-  t.true(visitor.children.indexOf(model) >= 0);
-  t.true(visitor.children.indexOf(model.getCollectionProperty()) >= 0);
+  expect(visitor.children.length).toBe(4);
+  expect(visitor.children.indexOf(subModel1) >= 0).toBeTruthy();
+  expect(
+    visitor.children.indexOf(subModel1.getStringProperty()) >= 0
+  ).toBeTruthy();
+  expect(visitor.children.indexOf(model) >= 0).toBeTruthy();
+  expect(
+    visitor.children.indexOf(model.getCollectionProperty()) >= 0
+  ).toBeTruthy();
 
   model.collection()[1].string = 'CHANGED'; // TestableModel2 at index 1 is now changed plus the string property
 
   const visitor2 = new GetChildrenWithStatusVisitor(ModelStatus.Changed);
   model.traverse(visitor2);
 
-  t.is(visitor2.children.length, 6);
-  t.true(visitor2.children.indexOf(subModel1) >= 0);
-  t.true(visitor2.children.indexOf(subModel1.getStringProperty()) >= 0);
-  t.true(visitor2.children.indexOf(subModel2) >= 0);
-  t.true(visitor2.children.indexOf(subModel2.getStringProperty()) >= 0);
-  t.true(visitor.children.indexOf(model) >= 0);
-  t.true(visitor.children.indexOf(model.getCollectionProperty()) >= 0);
+  expect(visitor2.children.length).toBe(6);
+  expect(visitor2.children.indexOf(subModel1) >= 0).toBeTruthy();
+  expect(
+    visitor2.children.indexOf(subModel1.getStringProperty()) >= 0
+  ).toBeTruthy();
+  expect(visitor2.children.indexOf(subModel2) >= 0).toBeTruthy();
+  expect(
+    visitor2.children.indexOf(subModel2.getStringProperty()) >= 0
+  ).toBeTruthy();
+  expect(visitor.children.indexOf(model) >= 0).toBeTruthy();
+  expect(
+    visitor.children.indexOf(model.getCollectionProperty()) >= 0
+  ).toBeTruthy();
 });
 
-test('with added children gives match', (t) => {
+test('with added children gives match', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();
@@ -397,13 +383,15 @@ test('with added children gives match', (t) => {
   const visitor = new GetChildrenWithStatusVisitor(ModelStatus.Added);
   model.traverse(visitor);
 
-  t.is(visitor.children.length, 3);
-  t.true(visitor.children.indexOf(model) >= 0);
-  t.true(visitor.children.indexOf(model.getCollectionProperty()) >= 0);
-  t.true(visitor.children.indexOf(subModel2) >= 0);
+  expect(visitor.children.length).toBe(3);
+  expect(visitor.children.indexOf(model) >= 0).toBeTruthy();
+  expect(
+    visitor.children.indexOf(model.getCollectionProperty()) >= 0
+  ).toBeTruthy();
+  expect(visitor.children.indexOf(subModel2) >= 0).toBeTruthy();
 });
 
-test('with added and changed children and only search added gives correct match', (t) => {
+test('with added and changed children and only search added gives correct match', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();
@@ -429,10 +417,10 @@ test('with added and changed children and only search added gives correct match'
   const visitor = new GetChildrenWithStatusVisitor(ModelStatus.Added);
   model.traverse(visitor);
 
-  t.is(visitor.children.length, 3);
+  expect(visitor.children.length).toBe(3);
 });
 
-test('with added and changed children and only search changed gives correct match', (t) => {
+test('with added and changed children and only search changed gives correct match', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2('model1');
@@ -458,16 +446,22 @@ test('with added and changed children and only search changed gives correct matc
   const visitor = new GetChildrenWithStatusVisitor(ModelStatus.Changed);
   model.traverse(visitor);
 
-  t.is(visitor.children.length, 6);
-  t.true(visitor.children.indexOf(subModel1) >= 0);
-  t.true(visitor.children.indexOf(subModel2) >= 0);
-  t.true(visitor.children.indexOf(subModel1.getStringProperty()) >= 0);
-  t.true(visitor.children.indexOf(subModel2.getStringProperty()) >= 0);
-  t.true(visitor.children.indexOf(model) >= 0);
-  t.true(visitor.children.indexOf(model.getCollectionProperty()) >= 0);
+  expect(visitor.children.length).toBe(6);
+  expect(visitor.children.indexOf(subModel1) >= 0).toBeTruthy();
+  expect(visitor.children.indexOf(subModel2) >= 0).toBeTruthy();
+  expect(
+    visitor.children.indexOf(subModel1.getStringProperty()) >= 0
+  ).toBeTruthy();
+  expect(
+    visitor.children.indexOf(subModel2.getStringProperty()) >= 0
+  ).toBeTruthy();
+  expect(visitor.children.indexOf(model) >= 0).toBeTruthy();
+  expect(
+    visitor.children.indexOf(model.getCollectionProperty()) >= 0
+  ).toBeTruthy();
 });
 
-test('nested model with leaf ModelProperty changed and limited ', (t) => {
+test('nested model with leaf ModelProperty changed and limited ', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();
@@ -490,10 +484,10 @@ test('nested model with leaf ModelProperty changed and limited ', (t) => {
   );
   model.traverse(visitor);
 
-  t.is(visitor.children.length, 1);
+  expect(visitor.children.length).toBe(1);
 });
 
-test('nested model with leaf ModelProperty changed and limited to ModelProperty', (t) => {
+test('nested model with leaf ModelProperty changed and limited to ModelProperty', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();
@@ -516,13 +510,13 @@ test('nested model with leaf ModelProperty changed and limited to ModelProperty'
   );
   model.traverse(visitor);
 
-  t.is(visitor.children.length, 1);
-  t.true(
+  expect(visitor.children.length).toBe(1);
+  expect(
     visitor.children.indexOf(model.collection()[0].getStringProperty()) >= 0
-  );
+  ).toBeTruthy();
 });
 
-test('nested model with leaf ModelProperty changed and limited to TestableModel', (t) => {
+test('nested model with leaf ModelProperty changed and limited to TestableModel', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();
@@ -545,10 +539,10 @@ test('nested model with leaf ModelProperty changed and limited to TestableModel'
   );
   model.traverse(visitor);
 
-  t.is(visitor.children.length, 1);
+  expect(visitor.children.length).toBe(1);
 });
 
-test('nested model with multiple leaf ModelProperty changed and limited to ModelProperty', (t) => {
+test('nested model with multiple leaf ModelProperty changed and limited to ModelProperty', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2('model1');
@@ -579,10 +573,10 @@ test('nested model with multiple leaf ModelProperty changed and limited to Model
   );
   model.traverse(visitor);
 
-  expect(visitor.children.length).toEqual(3);
+  expect(visitor.children.length).toBe(3);
 });
 
-test('nested model with multiple leaf ModelProperty changed and limited to TestableModel', (t) => {
+test('nested model with multiple leaf ModelProperty changed and limited to TestableModel', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2('model1');
@@ -613,10 +607,10 @@ test('nested model with multiple leaf ModelProperty changed and limited to Testa
   );
   model.traverse(visitor);
 
-  expect(visitor.children.length).toEqual(1);
+  expect(visitor.children.length).toBe(1);
 });
 
-test('model with added submodels and visitor looking for TestableModel with Added gives no match', (t) => {
+test('model with added sub-models and visitor looking for TestableModel with Added gives no match', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2('model1');
@@ -641,11 +635,11 @@ test('model with added submodels and visitor looking for TestableModel with Adde
   );
   model.traverse(visitor);
 
-  expect(visitor.children.length).toEqual(1);
-  expect(visitor.children.indexOf(model)).toBeGreaterThanOrEqual(0);
+  expect(visitor.children.length).toBe(1);
+  expect(visitor.children.indexOf(model) >= 0).toBeTruthy();
 });
 
-test('model with added submodels and visitor looking for TestableModel with New gives match', (t) => {
+test('model with added sub-models and visitor looking for TestableModel with New gives match', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2('model1');
@@ -670,10 +664,10 @@ test('model with added submodels and visitor looking for TestableModel with New 
   );
   model.traverse(visitor);
 
-  expect(visitor.children.length).toEqual(1);
+  expect(visitor.children.length).toBe(1);
 });
 
-test('model with added submodels and searching for Added status with TestableModel2 types', (t) => {
+test('model with added sub-models and searching for Added status with TestableModel2 types', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2('model1');
@@ -698,10 +692,10 @@ test('model with added submodels and searching for Added status with TestableMod
   );
   model.traverse(visitor);
 
-  expect(visitor.children.length).toEqual(3);
+  expect(visitor.children.length).toBe(3);
 });
 
-test('with no change give false', (t) => {
+test('with no change give false', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();
@@ -719,10 +713,10 @@ test('with no change give false', (t) => {
   const visitor = new ModelIsDirtyVisitor();
   model.traverse(visitor);
 
-  expect(visitor.isDirty).toBeFalsy('did not expected the model to be dirty');
+  expect(visitor.isDirty).toBeFalsy();
 });
 
-test('with change give true', (t) => {
+test('with change give true', () => {
   const model = new TestableModel();
 
   const subModel1 = new TestableModel2();

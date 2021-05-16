@@ -28,9 +28,9 @@ import { VisitorLimiter } from './visitor-limiters';
 abstract class StandardVisitor<T extends Model<any> & Traversable>
   implements ModelVisitor<T> {
   private currentDepth = -1;
-  private _limiter: VisitorLimiter | null;
+  private _limiter: VisitorLimiter | undefined;
 
-  constructor(limiter: VisitorLimiter | null) {
+  constructor(limiter: VisitorLimiter | undefined) {
     this._limiter = limiter;
   }
 
@@ -99,7 +99,7 @@ export class ModelAcquireStatusVisitor extends StandardVisitor<
     return this.statusFound;
   }
 
-  constructor(limiter: VisitorLimiter | null) {
+  constructor(limiter: VisitorLimiter | undefined = undefined) {
     super(limiter);
   }
 
@@ -121,7 +121,7 @@ export class ModelIsDirtyVisitor<
     return this.modelIsDirty;
   }
 
-  constructor(limiter: VisitorLimiter | null) {
+  constructor(limiter: VisitorLimiter | undefined = undefined) {
     super(limiter);
   }
 
@@ -147,7 +147,10 @@ export class ModelHasStatusVisitor<
     return this._modelHasStatus;
   }
 
-  constructor(searchStatus: ModelStatus, limiter: VisitorLimiter | null) {
+  constructor(
+    searchStatus: ModelStatus,
+    limiter: VisitorLimiter | undefined = undefined
+  ) {
     super(limiter);
     this.searchStatus = searchStatus;
   }
@@ -174,7 +177,10 @@ export class GetChildrenWithStatusVisitor<
     return this._childrenFound;
   }
 
-  constructor(childStatus: ModelStatus, limiter: VisitorLimiter | null) {
+  constructor(
+    childStatus: ModelStatus,
+    limiter: VisitorLimiter | undefined = undefined
+  ) {
     super(limiter);
     this._childStatus = childStatus;
   }

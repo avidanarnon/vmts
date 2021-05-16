@@ -1,3 +1,5 @@
+import * as ko from 'knockout';
+import { ObservableArray } from 'knockout';
 import { Observable, Subject } from 'rxjs';
 
 import {
@@ -11,25 +13,25 @@ import {
 
 export class ModelCollectionProperty<
   P extends Model<any> & Traversable & Deletable & Addable
-> implements Model<KnockoutObservableArray<P>>, Traversable {
+> implements Model<ObservableArray<P>>, Traversable {
   private _isNew: boolean;
 
   protected _changedSubject: Subject<Model<any>>;
   private _modelChanged: Observable<Model<any>>;
 
-  private _collection: KnockoutObservableArray<P>;
+  private _collection: ObservableArray<P>;
   private _added = new Array<P>();
   private _removed = new Array<P>();
 
-  get changed(): Observable<Model<KnockoutObservableArray<P>>> {
+  get changed(): Observable<Model<ObservableArray<P>>> {
     return this._modelChanged;
   }
 
-  get value(): KnockoutObservableArray<P> {
+  get value(): ObservableArray<P> {
     return this._collection;
   }
 
-  set value(v: KnockoutObservableArray<P>) {
+  set value(v: ObservableArray<P>) {
     throw new Error('Method not implemented.');
   }
 
@@ -38,11 +40,11 @@ export class ModelCollectionProperty<
     this._changedSubject = new Subject<Model<any>>();
     this._modelChanged = this._changedSubject.asObservable();
 
-    this._collection = ko.observableArray([]);
+    this._collection = ko.observableArray(new Array<P>());
     this._collection.subscribe(this.onCollectionChanged, this, 'arrayChange');
   }
 
-  private onCollectionChanged(changes: KnockoutArrayChange<P>[]) {
+  private onCollectionChanged(changes: ko.utils.ArrayChange<P>[]) {
     for (const change of changes) {
       const model = change.value;
       const isNew = !!(model.status() & ModelStatus.New);
