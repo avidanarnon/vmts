@@ -1,3 +1,4 @@
+import { ObservableArray } from 'knockout';
 import { ModelStatus } from '../lib/api';
 import { ModelCollectionProperty } from '../lib/model-collection';
 import { ModelProperty } from '../lib/model-property';
@@ -43,7 +44,7 @@ class TestableModel extends NamedPropertyModel {
     this.getChild<ModelProperty<number>>('number').value = v;
   }
 
-  get collection(): KnockoutObservableArray<TestableModel2> {
+  get collection(): ObservableArray<TestableModel2> {
     return this.getChild<ModelCollectionProperty<TestableModel2>>('collection')
       .value;
   }
