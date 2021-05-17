@@ -1,14 +1,8 @@
-import {
-  createRequire
-} from "module";
-
-const require = createRequire(
-  import.meta.url);
 var replace = require('replace-in-file');
 var buildVersion = process.argv[2];
 
 const packageJsonOptions = {
-  files: ['package.json', 'projects/**/package.json'],
+  files: ['package.json', './**/package.json'],
   from: /("version":).*/g,
   to: '"version":"' + buildVersion + '",',
   allowEmptyPaths: false
@@ -26,7 +20,7 @@ const configurePublicApiVersion = {
 };
 
 const configurePeerDependencies = {
-  files: 'projects/**/package.json',
+  files: './**/package.json',
   from: [
     /.*(\"@eobar\/foundation\":).*/g,
   ],
