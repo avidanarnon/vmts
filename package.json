@@ -1,7 +1,11 @@
 {
   "name": "vmts",
-  "version": "1.0.0",
+  "version": "0.1.1",
   "description": "A general purpose reactive view modeling library that tracks view model changes.",
+  "author": {
+    "email": "avidan_arnon@live.com",
+    "name": "Justin G. Becker"
+  },
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
   "module": "build/module/index.js",
@@ -29,14 +33,14 @@
     "cov:html": "nyc report --reporter=html",
     "cov:lcov": "nyc report --reporter=lcov",
     "cov:send": "run-s cov:lcov && codecov",
-    "cov:check": "nyc report && nyc check-coverage --lines 100 --functions 100 --branches 100",
     "doc": "run-s doc:html && open-cli build/docs/index.html",
-    "doc:html": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --out build/docs",
-    "doc:json": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --json build/docs/typedoc.json",
+    "doc:html": "typedoc src/ --exclude **/*.spec.ts --out build/docs",
+    "doc:json": "typedoc src/ --exclude **/*.spec.ts --json build/docs/typedoc.json",
     "doc:publish": "gh-pages -m \"[ci skip] Updates\" -d build/docs",
     "version": "standard-version",
     "reset-hard": "git clean -dfx && git reset --hard && npm i",
-    "prepare-release": "run-s reset-hard test cov:check doc:html version doc:publish"
+    "prepare-release": "run-s reset-hard test doc:html version doc:publish",
+    "version-stamp": "node ./update.version.js"
   },
   "engines": {
     "node": ">=10"
@@ -64,6 +68,7 @@
     "nyc": "^15.1.0",
     "open-cli": "^6.0.1",
     "prettier": "^2.1.1",
+    "replace-in-file": "^6.1.0",
     "standard-version": "^9.0.0",
     "tap-xunit": "^2.4.1",
     "ts-jest": "^26.5.6",
