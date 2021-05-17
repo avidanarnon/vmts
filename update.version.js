@@ -1,3 +1,9 @@
+import {
+  createRequire
+} from "module";
+
+const require = createRequire(
+  import.meta.url);
 var replace = require('replace-in-file');
 var buildVersion = process.argv[2];
 

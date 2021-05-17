@@ -1,6 +1,6 @@
 {
   "name": "vmts",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "A general purpose reactive view modeling library that tracks view model changes.",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
@@ -34,7 +34,7 @@
     "doc:html": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --out build/docs",
     "doc:json": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --json build/docs/typedoc.json",
     "doc:publish": "gh-pages -m \"[ci skip] Updates\" -d build/docs",
-    "version": "standard-version",
+    "version":"0.1.0-PullRequest0002.8",
     "reset-hard": "git clean -dfx && git reset --hard && npm i",
     "prepare-release": "run-s reset-hard test cov:check doc:html version doc:publish",
     "version-stamp": "node ./update.version.js"
@@ -65,6 +65,7 @@
     "nyc": "^15.1.0",
     "open-cli": "^6.0.1",
     "prettier": "^2.1.1",
+    "replace-in-file": "^6.1.0",
     "standard-version": "^9.0.0",
     "tap-xunit": "^2.4.1",
     "ts-jest": "^26.5.6",
